@@ -1,0 +1,231 @@
+version: '3.1'
+
+services:
+  telegraf:
+    image: telegraf:latest
+    container_name: telegraf
+    volumes:
+      - /home/ravindrajob/docker/data/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+
+  blackboxexporter:
+    image: prom/blackbox-exporter:v0.19.0
+    volumes:
+      - /home/ravindrajob/docker/data/blackboxexporter:/config
+    command:
+      - '--config.file=/config/blackbox.yml'
+    ports:
+      - 9115:9115
+    #If you need some extra host 
+    extra_hosts:
+      - "ravindra-job.com:10.22.144.136" #host and ip
+
+    restart: always
+
+  prometheus-1:
+    image: prom/prometheus:v2.27.1
+    user: "1000:1000"
+    volumes:
+      - /home/ravindrajob/docker/data/prom1/:/etc/prometheus/
+      - /home/ravindrajob/docker/data/prom1/:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.max-block-duration=30m'
+      - '--storage.tsdb.min-block-duration=30m'
+      - '--web.enable-lifecycle'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - 9081:9090
+    links:
+      - alertmanager:alertmanager
+      - blackboxexporter
+      - telegraf
+    depends_on:
+      - blackboxexporter
+    restart: always
+
+  prometheus-2:
+    image: prom/prometheus:v2.27.1
+    user: "1000:1000"
+    volumes:
+      - /home/ravindrajob/docker/data/prom2/:/etc/prometheus/
+      - /home/ravindrajob/docker/data/prom2/:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.max-block-duration=30m'
+      - '--storage.tsdb.min-block-duration=30m'
+      - '--web.enable-lifecycle'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - 9082:9090
+    links:
+      - alertmanager:alertmanager
+      - blackboxexporter
+      - telegraf
+    depends_on:
+      - blackboxexporter
+    restart: always
+
+  thanos-sidecar-1:
+    image: quay.io/thanos/thanos:v0.20.2
+    volumes:
+      - /home/ravindrajob/docker/data/:/etc/thanos/
+      - /home/ravindrajob/docker/data/prom1/:/prometheus
+    command:
+      - 'sidecar'
+      - '--tsdb.path=/prometheus'
+      - '--prometheus.url=http://prometheus-1:9090'
+      - '--grpc-address=0.0.0.0:10091'
+      - '--http-address=0.0.0.0:10902'
+      - '--objstore.config-file=/etc/thanos/bucket.yml'
+    depends_on:
+      - prometheus-1
+    restart: always
+
+  thanos-sidecar-2:
+    image: quay.io/thanos/thanos:v0.20.2
+    volumes:
+      - /home/ravindrajob/docker/data/:/etc/thanos/
+      - /home/ravindrajob/docker/data/prom2/:/prometheus
+    command:
+      - 'sidecar'
+      - '--tsdb.path=/prometheus'
+      - '--prometheus.url=http://prometheus-2:9090'
+      - '--grpc-address=0.0.0.0:10091'
+      - '--http-address=0.0.0.0:10902'
+      - '--objstore.config-file=/etc/thanos/bucket.yml'
+    depends_on:
+      - prometheus-2
+    restart: always
+
+  thanos-querier:
+    image: quay.io/thanos/thanos:v0.20.2
+    command:
+      - 'query'
+      - '--grpc-address=0.0.0.0:10091'
+      - '--http-address=0.0.0.0:10902'
+      - '--query.replica-label=replica'
+      - '--store=thanos-sidecar-1:10091'
+      - '--store=thanos-sidecar-2:10091'
+      - '--store=thanos-sidecar-0:10091'
+      - '--store=10.22.33.212:10091'
+      - '--store=10.22.36.1:19090'
+      - '--store=10.22.38.15:19090'
+      - '--store=10.22.39.15:19090'
+      - '--store=10.25.36.15:19090'
+      - '--store=thanos-store-gateway:10091'
+    ports:
+      - 10902:10902
+    depends_on:
+      - thanos-sidecar-1
+      - thanos-sidecar-2
+    restart: always
+
+  thanos-bucket-web:
+    image: quay.io/thanos/thanos:v0.20.2
+    volumes:
+      - /home/ravindrajob/docker/data/:/etc/thanos/
+    command:
+      - 'tools'
+      - 'bucket'
+      - 'web'
+      - '--http-address=0.0.0.0:10902'
+      - '--log.level=debug'
+      - '--objstore.config-file=/etc/thanos/bucket.yml'
+      - '--refresh=5m'
+      - '--timeout=2m'
+      - '--label=replica'
+    ports:
+      - 10905:10902
+
+  thanos-store-gateway:
+    image: quay.io/thanos/thanos:v0.20.2
+    volumes:
+      - /home/ravindrajob/docker/data/:/etc/thanos/
+    command:
+      - 'store'
+      - '--grpc-address=0.0.0.0:10091'
+      - '--http-address=0.0.0.0:10902'
+      - '--data-dir=/tmp/thanos/store'
+      - '--objstore.config-file=/etc/thanos/bucket.yml'
+    ports:
+      - 10904:10902
+    restart: always
+
+  thanos-compactor:
+    image: quay.io/thanos/thanos:v0.20.2
+    volumes:
+        - /home/ravindrajob/docker/data/:/etc/thanos/
+    command:
+        - 'compact'
+        - '--log.level=debug'
+        - '--data-dir=/data'
+        - '--objstore.config-file=/etc/thanos/bucket.yml'
+        - '--wait'
+    restart: always
+
+  thanos-ruler:
+    image: quay.io/thanos/thanos:v0.20.2
+    volumes:
+        - /home/ravindrajob/docker/data/:/etc/thanos/
+    command:
+        - 'rule'
+        - '--grpc-address=0.0.0.0:10091'
+        - '--http-address=0.0.0.0:10902'
+        - '--log.level=debug'
+        - '--data-dir=/data'
+        - '--eval-interval=15s'
+        - '--rule-file=/etc/thanos/*.rules.yaml'
+        - '--alertmanagers.url=http://alertmanager:9093'
+        - '--query=thanos-querier:10902'
+        - '--objstore.config-file=/etc/thanos/bucket.yml'
+        - "--label=ruler_cluster=\"StackMonitoring\""
+        - "--label=ruler_replica=\"StackMonitoring-a\""
+    ports:
+        - 10903:10902
+    depends_on:
+        - thanos-querier
+        - alertmanager
+    restart: always
+
+  alertmanager:
+    image: prom/alertmanager:v0.22.1
+    ports:
+        - 9093:9093
+    volumes:
+        - /home/ravindrajob/docker/data/alertmanager/:/etc/alertmanager/
+    command:
+        - '--config.file=/etc/alertmanager/alertmanager.yml'
+        - '--storage.path=/alertmanager'
+    restart: always
+
+  nginx:
+    image: nginx:stable-alpine
+    volumes:
+      - /home/ravindrajob/docker/data/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - /home/ravindrajob/docker/data/nginx/sites-enabled:/etc/nginx/sites-enabled/
+      - /home/ravindrajob/docker/data/nginx/.htpasswd:/etc/nginx/.htpasswd
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - prometheus-1
+      - prometheus-2
+      - thanos-querier
+      - alertmanager
+      - thanos-ruler
+      - thanos-compactor
+      - thanos-store-gateway
+
+  nginx-vts-exporter:
+    image: sophos/nginx-vts-exporter
+    restart: always
+    environment:
+      - NGINX_STATUS=http://nginx:8080/status/format/json
+    ports:
+      - 9915:9913
+    depends_on:
+      - nginx
