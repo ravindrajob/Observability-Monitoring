@@ -1,8 +1,8 @@
 # Monitoring in the CLOUD
-We can imagine this scenario where we need to monitor each customers with one Stack.
+### We can imagine this scenario where we need to monitor each customers with one Stack.
 ![alt text](https://ravindrajob.blob.core.windows.net/assets/customerScénario6.png)
 
-Our principal monitoring stack is made with this :
+### Our principal monitoring stack is made with this :
 ![alt text](https://ravindrajob.blob.core.windows.net/assets/Monitoring.png)
 
 ## Why monitoring ?
@@ -15,6 +15,6 @@ In our case we will use those components on a docker compute:
 - Loki for parse our LOGs
 - Telegraf for self monitoring
 - Nginx to securise and expose our stack
-## How to monitor your stack in the CLOUD ? 
-Here a docker-compose.yml example
+
+
 
