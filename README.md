@@ -2,9 +2,6 @@
 ### We can imagine this scenario where we need to monitor each customers with one Stack.
 ![alt text](https://ravindrajob.blob.core.windows.net/assets/customerScénario6.png)
 
-### Our principal monitoring stack is made with this :
-![alt text](https://ravindrajob.blob.core.windows.net/assets/Monitoring.png)
-
 ## Why monitoring ?
 ## Wich tools ?
 In our case we will use those components on a docker compute:
@@ -16,5 +13,7 @@ In our case we will use those components on a docker compute:
 - Telegraf for self monitoring
 - Nginx to securise and expose our stack
 
+### Our principal monitoring stack is made with this :
+![alt text](https://ravindrajob.blob.core.windows.net/assets/Monitoring.png)
 
 
