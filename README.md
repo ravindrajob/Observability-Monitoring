@@ -3,10 +3,11 @@
 ![alt text](https://ravindrajob.blob.core.windows.net/assets/customerScénario6.png)
 
 ## The four Golden Signals :
-Latency
-Traffic
-Errors
-Saturation
+
+- Latency
+- Traffic
+- Errors
+- Saturation
 
 ## why collecting this signals ?
 
