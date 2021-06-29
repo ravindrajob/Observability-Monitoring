@@ -1,4 +1,4 @@
-# Monitoring in the CLOUD
+# Observability in the CLOUD
 ### We can imagine this scenario where we need to monitor each customers with one Stack.
 ![alt text](https://ravindrajob.blob.core.windows.net/assets/customerScénario6.png)
 
