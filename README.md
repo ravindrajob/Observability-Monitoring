@@ -2,6 +2,18 @@
 ### We can imagine this scenario where we need to monitor each customers with one Stack.
 ![alt text](https://ravindrajob.blob.core.windows.net/assets/customerScénario6.png)
 
+## The four Golden Signals :
+Latency
+Traffic
+Errors
+Saturation
+
+## why collecting this signals ?
+
+Alerting: notify when something is wrong
+Troubleshooting: help us to isolate and fix the problem
+Tuning/Capacity Planning: to assist us in improving our setup over time
+
 ## Why monitoring ?
 ## Wich tools ?
 In our case we will use those components on a docker compute:
