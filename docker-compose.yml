@@ -17,7 +17,7 @@ services:
       - 9115:9115
     #If you need some extra host 
     extra_hosts:
-      - "ravindra-job.com:10.22.144.136" #host and ip
+      - "ravindra-job.com:192.168.200.1" #host and ip
 
     restart: always
 
