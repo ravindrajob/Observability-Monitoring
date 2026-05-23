@@ -1,12 +1,6 @@
-################################################################
-# Titre: Observability-Monitoring - README
-# Description : Lab d'Observabilité Industrielle (LGTM & OpenTelemetry)
-# Auteur: Ravindra JOB
-# Source: https://github.com/ravindrajob/
-# Update: 22/05/2026 [v2.0 | RJ] Major Update
-################################################################
-
 # Observability & Monitoring : Industrial LGTM Stack
+> **Architecture :** Lab d'Observabilité Industrielle (LGTM & OpenTelemetry) | **Version :** v2.1 | **Maintainer :** [Ravindra JOB](https://github.com/ravindrajob/)
+---
 
 Cette plateforme constitue un centre d'excellence pour l'observabilité moderne. Elle s'appuie sur la **LGTM Stack** (Loki, Grafana, Tempo, Mimir/Prometheus) et le standard **OpenTelemetry** pour fournir une visibilité à 360° sur les infrastructures Cloud Native.
 
